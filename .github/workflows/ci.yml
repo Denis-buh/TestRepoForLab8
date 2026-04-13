@@ -1,0 +1,45 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ./Code
+
+    - name: Build project
+      run: dotnet build ./Code --no-restore --configuration Release
+
+    - name: Run tests
+      run: dotnet test ./Code --no-build --verbosity normal
+
+    # 🐳 Сборка Docker образа приложения
+    - name: Build Docker image (app)
+      run: docker build -t myapp:latest ./Code
+
+    # 🐳 Проверка docker-compose (поднимаем сервисы)
+    - name: Run docker-compose
+      run: |
+        docker compose up -d
+        sleep 10
+        docker compose ps
+
+    # (опционально) остановка
+    - name: Shutdown containers
+      if: always()
+      run: docker compose down

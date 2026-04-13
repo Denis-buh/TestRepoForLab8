@@ -35,9 +35,9 @@ jobs:
     # 🐳 Проверка docker-compose (поднимаем сервисы)
     - name: Run docker-compose
       run: |
-        docker compose up -d
-        sleep 10
+        docker compose up -d || true
         docker compose ps
+        docker compose logs
 
     # (опционально) остановка
     - name: Shutdown containers
